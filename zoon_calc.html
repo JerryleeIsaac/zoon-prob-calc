@@ -41,7 +41,7 @@
 					</div>
 
 					<!--Outcome Type-->
-					<div class="col-sm-12">
+					<div class="col-sm-12 col-md-6">
 						<label for="outcomeType">Outcome Type</label>
 						<select class="form-control" id="outcomeType">
 							<option>Win</option>
@@ -49,15 +49,21 @@
 						</select>
 					</div>
 
-					<!--Minimum Reward-->
+					<!--Gas fee-->
 					<div class="col-sm-12 col-md-6">
-						<label for="minReward">Minimum reward</label>
+						<label for="gasFee">Gas fee</label>
+						<input type="number" class="form-control" id="gasFee"  value=24>
+					</div>
+
+					<!--Min Reward-->
+					<div class="col-sm-12 col-md-6">
+						<label for="minReward">Min reward</label>
 						<input type="number" class="form-control" id="minReward"  value=100>
 					</div>
 
-					<!--Maximum Reward-->
+					<!--Max Reward-->
 					<div class="col-sm-12 col-md-6">
-						<label for="maxReward">Maximum reward</label>
+						<label for="maxReward">Max reward</label>
 						<input type="number" class="form-control" id="maxReward"  value=200>
 					</div>
 
@@ -93,11 +99,8 @@
 				}
 			}
 
-			function chancePrettify(count, chance) {
+			function chancePrettify(chance) {
 				let prettyChance = Math.round(chance);
-				if (count == 0)
-					return "0 %"
-
 				if (prettyChance == 100) 
 					return "&cong;100 %"
 				if (prettyChance == 0)
@@ -123,6 +126,7 @@
 			let outcomeType = document.getElementById("outcomeType").value.toString();
 			let minReward = parseInt(document.getElementById("minReward").value);
 			let maxReward = parseInt(document.getElementById("maxReward").value);
+			let gasFee = parseInt(document.getElementById("gasFee").value);
 
 			if (outcomeType == "Loss")
 				rate = 1 - rate;
@@ -147,6 +151,8 @@
 					minChance: chance,
 					minTotalRewards: count * minReward,
 					maxTotalRewards: count * maxReward,
+					netMinTotalRewards: count * minReward - fightCount * gasFee,
+					netMaxTotalRewards: count * maxReward - fightCount * gasFee,
 				});
 			}
 
@@ -165,8 +171,11 @@
 							<th scope="col">`+ outcomeType + ` count</th>
 							<th scope="col">Chance = `+ outcomeType + ` count</th>
 							<th scope="col">Chance &#8805; `+ outcomeType + ` count</th>
-							<th scope="col">Minimum Total Rewards</th>
-							<th scope="col">Maximum Total Rewards</th>
+							<th scope="col">Min Total Rewards</th>
+							<th scope="col">Max Total Rewards</th>
+							<th scope="col">Gas Fee</th>
+							<th scope="col">Net Min Total Rewards</th>
+							<th scope="col">Net Max Total Rewards</th>
 						</tr>
 					</thead>
 			`
@@ -176,10 +185,13 @@
 				outcomeTableBody.innerHTML += `
 				<tr>
 					<td scope="row" class="text-right">` + outcome.count.toString() + `</td>
-					<td class="text-right">` + chancePrettify(outcome.count, outcome.chance).toString() + `</td>
-					<td class="text-right">` + chancePrettify(outcome.count, outcome.minChance).toString() + `</td>
+					<td class="text-right">` + chancePrettify(outcome.chance).toString() + `</td>
+					<td class="text-right">` + chancePrettify(outcome.minChance).toString() + `</td>
 					<td class="text-right">` + Math.round(outcome.minTotalRewards).toString() + `</td>
 					<td class="text-right">` + Math.round(outcome.maxTotalRewards).toString() + `</td>
+					<td class="text-right">` + Math.round(fightCount * gasFee).toString() + `</td>
+					<td class="text-right">` + Math.round(outcome.netMinTotalRewards).toString() + `</td>
+					<td class="text-right">` + Math.round(outcome.netMaxTotalRewards).toString() + `</td>
 				</tr>
 				`;
 			});
