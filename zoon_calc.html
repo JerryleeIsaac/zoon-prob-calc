@@ -149,10 +149,10 @@
 					count: count,
 					chance: chance,
 					minChance: chance,
-					minTotalRewards: count * minReward,
-					maxTotalRewards: count * maxReward,
-					netMinTotalRewards: count * minReward - fightCount * gasFee,
-					netMaxTotalRewards: count * maxReward - fightCount * gasFee,
+					minTotalRewards: rewardMultiplier * minReward,
+					maxTotalRewards: rewardMultiplier * maxReward,
+					netMinTotalRewards: rewardMultiplier * minReward - fightrewardMultiplier * gasFee,
+					netMaxTotalRewards: rewardMultiplier * maxReward - fightrewardMultiplier * gasFee,
 				});
 			}
 
