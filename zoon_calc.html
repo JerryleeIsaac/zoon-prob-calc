@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Zoon Probability Calculator</title>
+		<title>Zoon Fight Prediction</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 		<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
@@ -11,10 +11,10 @@
 	<body>
 		<div class="container-fluid mt-5">
 
-			<h1>Zoon Outcome Probability Calculator</h1>
+			<h1>Zoon Fight Prediction</h1>
 
-			<!--Probability Form-->
-			<form id="probabilityForm">
+			<!--Chance Form-->
+			<form id="chanceForm">
 
 				<div class="form-row">
 					<!--Total Games-->
@@ -44,8 +44,8 @@
 					<div class="col-sm-12">
 						<label for="outcomeType">Outcome Type</label>
 						<select class="form-control" id="outcomeType">
-							<option>Minimum number of wins</option>
-							<option>Number of wins</option>
+							<option>Win</option>
+							<option>Loss</option>
 						</select>
 					</div>
 
@@ -64,7 +64,7 @@
 				</div>
 
 				<div class="form-group mt-2">
-					<button class="btn btn-info" type="submit">Compute Outcomes</button>
+					<button class="btn btn-info" type="submit">Predict Results</button>
 				</div>
 			</form>
 
@@ -93,8 +93,16 @@
 				}
 			}
 
-			function decimalTruncate(num) {
-				return Math.round(100 * num) / 100;
+			function chancePrettify(count, chance) {
+				let prettyChance = Math.round(chance);
+				if (count == 0)
+					return "0 %"
+
+				if (prettyChance == 100) 
+					return "&cong;100 %"
+				if (prettyChance == 0)
+					return "&cong;0 %"
+				return prettyChance.toString() + " %";
 			}
 
 		</script>
@@ -103,46 +111,50 @@
 
 
 
-		let form = document.getElementById("probabilityForm");
+		let form = document.getElementById("chanceForm");
 		form.onsubmit = (event) => {
 			event.preventDefault();
 
 			let outcomesDiv = document.getElementById("outcomes");
 			outcomesDiv.innerHTML = "";
 
-			let winRate = parseFloat(document.getElementById("winRate").value);
+			let rate = parseFloat(document.getElementById("winRate").value);
 			let fightCount = parseInt(document.getElementById("fightCount").value);
 			let outcomeType = document.getElementById("outcomeType").value.toString();
 			let minReward = parseInt(document.getElementById("minReward").value);
 			let maxReward = parseInt(document.getElementById("maxReward").value);
 
+			if (outcomeType == "Loss")
+				rate = 1 - rate;
+
 
 			// Calculate probabilities
 			let outcomes = [];
-			let winCount = 0;
-			for (winCount = 0; winCount <= fightCount; winCount++) {
-				let combination = combinations(fightCount, winCount);
-				let p = winRate;
-				let q = 1 - winRate;
+			let count = 0;
+			for (count = 0; count <= fightCount; count++) {
+				let combination = combinations(fightCount, count);
+				let p = rate;
+				let q = 1 - rate;
 				let n = fightCount;
-				let k = winCount;
+				let k = count;
 
-				let probability = 100 * combination * (p ** k) * (q ** (n-k));
+				let chance = 100 * combination * (p ** k) * (q ** (n-k));
+				let rewardMultiplier = outcomeType == "Win" ? count : fightCount - count;
 
 				outcomes.push({
-					winCount: winCount,
-					probability: probability,
-					minProbability: probability,
-					minTotalRewards: winCount * minReward,
-					maxTotalRewards: winCount * maxReward,
+					count: count,
+					chance: chance,
+					minChance: chance,
+					minTotalRewards: count * minReward,
+					maxTotalRewards: count * maxReward,
 				});
 			}
 
 			// Calculate cumulative probabilities
-			let cumProbability = outcomes[0].probability;
-			for (winCount = 1; winCount <= fightCount; winCount++) {
-				outcomes[winCount].minProbability = 100 - cumProbability;
-				cumProbability += outcomes[winCount].probability;
+			let cumChance = outcomes[0].chance;
+			for (count = 1; count <= fightCount; count++) {
+				outcomes[count].minChance = 100 - cumChance;
+				cumChance += outcomes[count].chance;
 			}
 
 			let outcomeTable = document.createElement("table");
@@ -150,8 +162,9 @@
 			outcomeTable.innerHTML = `
 					<thead>
 						<tr>
-							<th scope="col">`+ outcomeType + `</th>
-							<th scope="col">Outcome Probability</th>
+							<th scope="col">`+ outcomeType + ` count</th>
+							<th scope="col">Chance = `+ outcomeType + ` count</th>
+							<th scope="col">Chance &#8805; `+ outcomeType + ` count</th>
 							<th scope="col">Minimum Total Rewards</th>
 							<th scope="col">Maximum Total Rewards</th>
 						</tr>
@@ -162,10 +175,11 @@
 			outcomes.forEach(outcome => {
 				outcomeTableBody.innerHTML += `
 				<tr>
-					<td scope="row" class="text-right">` + outcome.winCount.toString() + `</td>
-					<td class="text-right">` + (outcomeType == "Minimum number of wins" ? decimalTruncate(outcome.minProbability).toString() : decimalTruncate(outcome.probability).toString()) + `%</td>
-					<td class="text-right">` + decimalTruncate(outcome.minTotalRewards).toString() + `</td>
-					<td class="text-right">` + decimalTruncate(outcome.maxTotalRewards).toString() + `</td>
+					<td scope="row" class="text-right">` + outcome.count.toString() + `</td>
+					<td class="text-right">` + chancePrettify(outcome.count, outcome.chance).toString() + `</td>
+					<td class="text-right">` + chancePrettify(outcome.count, outcome.minChance).toString() + `</td>
+					<td class="text-right">` + Math.round(outcome.minTotalRewards).toString() + `</td>
+					<td class="text-right">` + Math.round(outcome.maxTotalRewards).toString() + `</td>
 				</tr>
 				`;
 			});
