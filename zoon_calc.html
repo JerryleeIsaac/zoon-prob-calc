@@ -157,8 +157,8 @@
 			}
 
 			// Calculate cumulative probabilities
-			let cumChance = outcomes[0].chance;
-			for (count = 1; count <= fightCount; count++) {
+			let cumChance = 0;
+			for (count = 0; count <= fightCount; count++) {
 				outcomes[count].minChance = 100 - cumChance;
 				cumChance += outcomes[count].chance;
 			}
